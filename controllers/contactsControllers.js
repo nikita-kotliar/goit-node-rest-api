@@ -3,7 +3,7 @@ import {
   createContactSchema,
   updateContactSchema,
 } from "../schemas/contactsSchemas.js";
-import сontact from "../models/Contact.js";
+import сontact from "../services/contactsServices.js";
 
 export const getAllContacts = async (req, res) => {
   try {
