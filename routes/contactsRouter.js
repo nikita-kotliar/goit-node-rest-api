@@ -12,7 +12,6 @@ import {
   updateContactSchema,
 } from "../schemas/contactsSchemas.js";
 
-
 const contactsRouter = express.Router();
 
 contactsRouter.get("/", getAllContacts);

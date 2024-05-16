@@ -53,7 +53,7 @@ export const updateContact = async (id, data) => {
   contacts[index] = { ...contacts[index], ...data };
   await writeFile(contacts);
 
-  return contats[index];
+  return contacts[index];
 };
 
 async function readFile() {
