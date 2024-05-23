@@ -69,35 +69,33 @@ export const createContact = async (req, res, next) => {
 };
 
 
+import { HttpError } from "http-errors";
+
 export const updateContact = async (req, res, next) => {
   const { id } = req.params;
   try {
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      throw HttpError(400, "Invalid ObjectId format");
+      throw new HttpError(400, "Invalid ObjectId format");
     }
     const { name, email, phone } = req.body;
     const { error } = updateContactSchema.validate(req.body);
     if (error) {
-      throw HttpError(400, "Body must have at least one field");
+      throw new HttpError(400, "Body must have at least one field");
     }
     const updatedContact = await Contact.findByIdAndUpdate(
       id,
-      {
-        name,
-        email,
-        phone,
-      },
-
+      { name, email, phone },
       { new: true }
     );
     if (!updatedContact) {
-      throw HttpError(404);
+      throw new HttpError(404, "Contact not found");
     }
     res.status(200).json(updatedContact);
   } catch (error) {
     next(error);
   }
 };
+
 
 
 async function updateStatusContact(contactId, favorite) {

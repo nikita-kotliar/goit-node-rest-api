@@ -2,8 +2,11 @@ import express from "express";
 import morgan from "morgan";
 import cors from "cors";
 import mongoose from "mongoose";
-
+import dotenv from "dotenv";
+import path from "path";
 import contactsRouter from "./routes/contactsRouter.js";
+
+dotenv.config({ path: path.resolve(process.cwd(), ".env") });
 
 const app = express();
 
@@ -22,7 +25,12 @@ app.use((err, req, res, next) => {
   res.status(status).json({ message });
 });
 
-const DB_URI = "mongodb+srv://Nikita:knr22042007@cluster0.me15h2k.mongodb.net/db-contacts?retryWrites=true&w=majority&appName=Cluster0";
+const DB_URI = process.env.DB_URI;
+
+if (!DB_URI) {
+  console.error("DB_URI не визначена");
+  process.exit(1);
+}
 
 mongoose
   .connect(DB_URI)
