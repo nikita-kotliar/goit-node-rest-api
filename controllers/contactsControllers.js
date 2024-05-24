@@ -69,8 +69,6 @@ export const createContact = async (req, res, next) => {
 };
 
 
-import { HttpError } from "http-errors";
-
 export const updateContact = async (req, res, next) => {
   const { id } = req.params;
   try {
