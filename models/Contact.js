@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
 const contactSchema = new mongoose.Schema(
   {
@@ -16,8 +16,12 @@ const contactSchema = new mongoose.Schema(
       type: Boolean,
       default: false,
     },
+    owner: {
+      type: Schema.Types.ObjectId,
+      ref: "user", 
+    },
   },
-  { versionKey: false }
+  { versionKey: false } 
 );
 
 const Contact = mongoose.model("Contact", contactSchema);
