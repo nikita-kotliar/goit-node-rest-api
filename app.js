@@ -6,7 +6,7 @@ import dotenv from "dotenv";
 import path from "path";
 import contactsRouter from "./routes/contactsRouter.js";
 
-dotenv.config({ path: path.resolve(process.cwd(), ".env.example") });
+dotenv.config();
 
 const app = express();
 
