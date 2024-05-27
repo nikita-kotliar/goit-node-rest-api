@@ -58,8 +58,7 @@ export const createContact = async (req, res, next) => {
     const { name, email, phone } = req.body;
     const { error } = createContactSchema.validate(req.body);
     if (error) {
-      const errors = error.details.map((detail) => detail.message);
-      throw new HttpError(400, { errors });
+      throw new HttpError(400, "Body must have at least one field");
     }
     const newContact = new Contact({ name, email, phone });
     const savedContact = await newContact.save();
