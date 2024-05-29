@@ -58,7 +58,7 @@ export const createContact = async (req, res, next) => {
     const { name, email, phone } = req.body;
     const { error } = createContactSchema.validate(req.body);
     if (error) {
-      throw new HttpError(400, "Body must have at least one field");
+      throw HttpError(400, "Body must have at least one field");
     }
     const newContact = new Contact({ name, email, phone });
     const savedContact = await newContact.save();
@@ -75,19 +75,19 @@ export const updateContact = async (req, res, next) => {
   try {
     // Перевірка на валідність ObjectId
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return next(HttpError(400, "Invalid ObjectId format"));
+      throw HttpError(HttpError(400, "Invalid ObjectId format"));
     }
 
     // Перевірка на порожнє тіло запиту
     if (Object.keys(req.body).length === 0) {
-      return next(HttpError(400, "Body must have at least one field"));
+      throw HttpError(HttpError(400, "Body must have at least one field"));
     }
 
     // Валідація тіла запиту
     const { name, email, phone } = req.body;
     const { error } = updateContactSchema.validate(req.body);
     if (error) {
-      return next(HttpError(400, "Body must have at least one field"));
+      throw HttpError(HttpError(400, "Body must have at least one field"));
     }
 
     // Пошук та оновлення контакту
@@ -98,7 +98,7 @@ export const updateContact = async (req, res, next) => {
     );
 
     if (!updatedContact) {
-      return next(HttpError(404, "Contact not found"));
+      throw HttpError(HttpError(404, "Contact not found"));
     }
 
     // Відправка оновленого контакту
