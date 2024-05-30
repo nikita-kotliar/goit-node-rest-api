@@ -1,12 +1,13 @@
 import HttpError from "../helpers/HttpError.js";
 import {
-  createContactSchema,
-  updateContactSchema,
+  updateContactSchemaValid,
   validateFavoriteBody,
+  createContactSchemaValid,
 } from "../schemas/contactsSchemas.js";
 import Contact from "../models/Contact.js";
 
 import mongoose from "mongoose";
+
 
 export const getAllContacts = async (req, res, next) => {
   try {
@@ -56,10 +57,17 @@ export const deleteContact = async (req, res, next) => {
 export const createContact = async (req, res, next) => {
   try {
     const { name, email, phone } = req.body;
-    const { error } = createContactSchema.validate(req.body);
+    const { error } = updateContactSchemaValid.validate(req.body, {
+      abortEarly: false,
+    });
+
     if (error) {
-      throw HttpError(400, "Body must have at least one field");
+      const errorMessage = error.details
+        .map((detail) => detail.message)
+        .join(", ");
+      return next(HttpError(400, errorMessage));
     }
+
     const newContact = new Contact({ name, email, phone });
     const savedContact = await newContact.save();
     res.status(201).json(savedContact);
@@ -75,22 +83,27 @@ export const updateContact = async (req, res, next) => {
   try {
     // Перевірка на валідність ObjectId
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      throw HttpError(HttpError(400, "Invalid ObjectId format"));
+      return next(HttpError(400, "Invalid ObjectId format"));
     }
 
     // Перевірка на порожнє тіло запиту
     if (Object.keys(req.body).length === 0) {
-      throw HttpError(HttpError(400, "Body must have at least one field"));
+      return next(HttpError(400, "Body must have at least one field"));
     }
 
     // Валідація тіла запиту
     const { name, email, phone } = req.body;
-    const { error } = updateContactSchema.validate(req.body);
+    const { error } = createContactSchemaValid.validate(req.body, {
+      abortEarly: false,
+    });
+
     if (error) {
-      throw HttpError(HttpError(400, "Body must have at least one field"));
+      const errorMessage = error.details
+        .map((detail) => detail.message)
+        .join(", ");
+      return next(HttpError(400, errorMessage));
     }
 
-    // Пошук та оновлення контакту
     const updatedContact = await Contact.findByIdAndUpdate(
       id,
       { name, email, phone },
@@ -98,7 +111,7 @@ export const updateContact = async (req, res, next) => {
     );
 
     if (!updatedContact) {
-      throw HttpError(HttpError(404, "Contact not found"));
+      return next(HttpError(404, "Contact not found"));
     }
 
     // Відправка оновленого контакту
