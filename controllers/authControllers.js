@@ -8,9 +8,15 @@ import jwt from "jsonwebtoken";
 // Реєстрація нового юз -----------------------------------
 
 export const registerUser = async (req, res, next) => {
-  const { error } = registerUserSchema.validate(req.body);
+  const { error } = registerUserSchema.validate(req.body, {
+    abortEarly: false,
+  });
+
   if (error) {
-    return res.status(400).send({ message: error.message });
+    const errorMessage = error.details
+      .map((detail) => detail.message)
+      .join(", ");
+    return next(HttpError(400, errorMessage));
   }
 
   try {
@@ -38,9 +44,15 @@ export const registerUser = async (req, res, next) => {
 
 //Отримання токена ---------------------------------
 export const loginUser = async (req, res, next) => {
-  const { error } = registerUserSchema.validate(req.body);
+  const { error } = registerUserSchema.validate(req.body, {
+    abortEarly: false,
+  });
+
   if (error) {
-    return res.status(400).send({ message: error.message });
+    const errorMessage = error.details
+      .map((detail) => detail.message)
+      .join(", ");
+    return next(HttpError(400, errorMessage));
   }
   try {
     const existUser = await User.findOne({ email: req.body.email });
