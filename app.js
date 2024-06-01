@@ -10,15 +10,11 @@ import usersRoutes from "./routes/usersRouter.js";
 import "dotenv/config";
 import path from "path";
 
-dotenv.config();
-
-const app = express();
-
-app.use(morgan("tiny"));
+use(morgan("tiny"));
 app.use(cors());
 app.use(express.json());
 
-app.use("/avatars", express.static(path.resolve("public/avatars")));
+app.use("/avatars", express.static(path.reslve("public/avatars")));
 app.use("/api/contacts", contactsRouter);
 app.use("/users", authRouter);
 
@@ -42,7 +38,7 @@ mongoose
   .connect(DB_URI)
   .then(() => {
     console.info("Database connection successful");
-    app.listen(3014, () => {
+    app.listen(3024, () => {
       console.log("Server is running. Use our API on port: 3000");
     });
   })
