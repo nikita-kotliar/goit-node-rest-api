@@ -15,7 +15,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/api/contacts", contactsRouter);
-app.use("/api/users", authRouter);
+app.use("/users", authRouter);
 
 app.use((_, res) => {
   res.status(404).json({ message: "Route not found" });
@@ -37,7 +37,7 @@ mongoose
   .connect(DB_URI)
   .then(() => {
     console.info("Database connection successful");
-    app.listen(3011, () => {
+    app.listen(3014, () => {
       console.log("Server is running. Use our API on port: 3000");
     });
   })

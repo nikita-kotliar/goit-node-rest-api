@@ -1,6 +1,6 @@
 import { registerUserSchema } from "../schemas/usersSchemas.js";
 import User from "../models/User.js";
-
+import HttpError from "../helpers/HttpError.js";
 import bcrypt from "bcrypt";
 
 import jwt from "jsonwebtoken";
