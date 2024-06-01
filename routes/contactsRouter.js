@@ -1,32 +1,48 @@
 import express from "express";
-import {
-  getAllContacts,
-  getOneContact,
-  deleteContact,
-  createContact,
-  updateContact,
-  updateContactFavoriteStatus,
-} from "../controllers/contactsControllers.js";
+import ContactsController from "../controllers/contactsControllers.js";
+import authTokenUsePassport from "../middleware/authTokenUsePassport.js";
 
-// вар.2 оголошення змінной локально з присвоэнням midleware express для репарсеру req.body та передача її перед викликом певних методів у яких потрібно зчитування reg.body в запитах: POST в createContact, PUT в updateContact.
 const jsonParser = express.json();
 
 const contactsRouter = express.Router();
 
-contactsRouter.get("/", getAllContacts);
+contactsRouter.get(
+  "/",
+  authTokenUsePassport,
+  ContactsController.getAllContacts
+);
 
-contactsRouter.get("/:id", getOneContact);
+contactsRouter.get(
+  "/:id",
+  authTokenUsePassport,
+  ContactsController.getOneContact
+);
 
-contactsRouter.delete("/:id", deleteContact);
+contactsRouter.delete(
+  "/:id",
+  authTokenUsePassport,
+  ContactsController.deleteContact
+);
 
-contactsRouter.post("/", jsonParser, createContact);
+contactsRouter.post(
+  "/",
+  jsonParser,
+  authTokenUsePassport,
+  ContactsController.createContact
+);
 
-contactsRouter.put("/:id", jsonParser, updateContact);
+contactsRouter.put(
+  "/:id",
+  jsonParser,
+  authTokenUsePassport,
+  ContactsController.updateContact
+);
 
 contactsRouter.patch(
   "/:contactId/favorite",
   jsonParser,
-  updateContactFavoriteStatus
+  authTokenUsePassport,
+  ContactsController.updateContactFavoriteStatus
 );
 
 export default contactsRouter;
