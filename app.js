@@ -37,7 +37,7 @@ mongoose
   .connect(DB_URI)
   .then(() => {
     console.info("Database connection successful");
-    app.listen(3014, () => {
+    app.listen(3024, () => {
       console.log("Server is running. Use our API on port: 3000");
     });
   })

@@ -98,8 +98,15 @@ export const createContact = async (req, res, next) => {
         .join(", ");
       return next(HttpError(400, errorMessage));
     }
+    console.log(req.user);
+    // створюємо новий контакт
+    const newContact = new Contact({
+      name,
+      email,
+      phone,
+      owner: req.user.id, // add owner з моделі Contact та присвоєння їй id користувача
+    });
 
-    const newContact = new Contact({ name, email, phone });
     const savedContact = await newContact.save();
     res.status(201).json(savedContact);
   } catch (error) {
@@ -107,21 +114,13 @@ export const createContact = async (req, res, next) => {
   }
 };
 
+
 export const updateContact = async (req, res, next) => {
   const { id } = req.params;
-
   try {
-    // Перевірка на валідність ObjectId
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return next(HttpError(400, "Invalid ObjectId format"));
+      throw HttpError(400, "Invalid ObjectId format");
     }
-
-    // Перевірка на порожнє тіло запиту
-    if (Object.keys(req.body).length === 0) {
-      return next(HttpError(400, "Body must have at least one field"));
-    }
-
-    // Валідація тіла запиту
     const { name, email, phone } = req.body;
     const { error } = createContactSchemaValid.validate(req.body, {
       abortEarly: false,
@@ -133,23 +132,32 @@ export const updateContact = async (req, res, next) => {
         .join(", ");
       return next(HttpError(400, errorMessage));
     }
-
+    const contact = await Contact.findById(id);
+    if (!contact) {
+      throw HttpError(404);
+    }
+    if (contact.owner.toString() !== req.user.id) {
+      throw HttpError(403, "Contact not found");
+    }
     const updatedContact = await Contact.findByIdAndUpdate(
       id,
-      { name, email, phone },
-      { new: true, runValidators: true }
+      {
+        name,
+        email,
+        phone,
+      },
+
+      { new: true }
     );
-
     if (!updatedContact) {
-      return next(HttpError(404, "Contact not found"));
+      throw HttpError(404);
     }
-
-    // Відправка оновленого контакту
     res.status(200).json(updatedContact);
   } catch (error) {
     next(error);
   }
 };
+
 
 async function updateStatusContact(contactId, favorite) {
   try {
