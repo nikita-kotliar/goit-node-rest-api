@@ -1,10 +1,10 @@
 import Joi from "joi";
 
-export const validateFavoriteBody = Joi.object({
+export const updateStatusSchema = Joi.object({
   favorite: Joi.boolean().required(),
 });
 
-export const updateContactSchemaValid = Joi.object({
+export const createContactSchema = Joi.object({
   name: Joi.string().required().messages({
     "any.required": "Name is required",
     "string.empty": "Name cannot be empty",
@@ -20,7 +20,7 @@ export const updateContactSchemaValid = Joi.object({
   }),
 });
 
-export const createContactSchemaValid = Joi.object({
+export const updateContactSchema = Joi.object({
   name: Joi.string().messages({
     "string.empty": "Name cannot be empty",
   }),
