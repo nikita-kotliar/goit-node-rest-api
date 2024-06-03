@@ -3,6 +3,9 @@ import HttpError from "../helpers/HttpError.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import gravatar from "gravatar";
+import { registerUserSchema, loginUserSchema } from "../schemas/usersSchema";
+
+
 
 export const register = async (req, res, next) => {
   const { error } = registerUserSchema.validate(req.body, {
@@ -40,7 +43,7 @@ export const register = async (req, res, next) => {
 };
 
 export const login = async (req, res, next) => {
-  const { error } = registerUserSchema.validate(req.body, {
+  const { error } = loginUserSchema.validate(req.body, {
     abortEarly: false,
   });
 
