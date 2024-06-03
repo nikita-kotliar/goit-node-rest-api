@@ -1,12 +1,10 @@
 import express from "express";
 import morgan from "morgan";
 import cors from "cors";
-import mongoose from "mongoose";
-import dotenv from "dotenv";
 import contactsRouter from "./routes/contactsRouter.js";
 import authRouter from "./routes/authRouter.js";
-
-dotenv.config();
+import "dotenv/config";
+import "./db/dbServer.js";
 
 const app = express();
 
@@ -17,7 +15,7 @@ app.use(express.json());
 app.use("/api/contacts", contactsRouter);
 app.use("/users", authRouter);
 
-app.use((_, res) => {
+app.use((req, res, next) => {
   res.status(404).json({ message: "Route not found" });
 });
 
@@ -26,22 +24,6 @@ app.use((err, req, res, next) => {
   res.status(status).json({ message });
 });
 
-const DB_URI = process.env.DB_URI;
-
-if (!DB_URI) {
-  console.error("DB_URI не визначена");
-  process.exit(1);
-}
-
-mongoose
-  .connect(DB_URI)
-  .then(() => {
-    console.info("Database connection successful");
-    app.listen(3024, () => {
-      console.log("Server is running. Use our API on port: 3000");
-    });
-  })
-  .catch((error) => {
-    console.error("Database connection error:", error);
-    process.exit(1);
-  });
+app.listen(3016, () => {
+  console.log("Server started on port 3000");
+});

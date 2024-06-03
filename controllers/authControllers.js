@@ -1,49 +1,9 @@
-import { registerUserSchema } from "../schemas/usersSchemas.js";
-import User from "../models/User.js";
+import User from "../db/models/User.js";
 import HttpError from "../helpers/HttpError.js";
 import bcrypt from "bcrypt";
-
 import jwt from "jsonwebtoken";
 
-// Реєстрація нового юз -----------------------------------
-
-export const registerUser = async (req, res, next) => {
-  const { error } = registerUserSchema.validate(req.body, {
-    abortEarly: false,
-  });
-
-  if (error) {
-    const errorMessage = error.details
-      .map((detail) => detail.message)
-      .join(", ");
-    return next(HttpError(400, errorMessage));
-  }
-
-  try {
-    const existUser = await User.findOne({ email: req.body.email });
-
-    if (existUser !== null) {
-      return res.status(409).send({ message: "Email in use" });
-    }
-    const hashedPassword = await bcrypt.hash(req.body.password, 10);
-    await User.create({
-      email: req.body.email,
-      password: hashedPassword,
-    });
-
-    res.status(201).send({
-      user: {
-        email: req.body.email,
-        subscription: "starter",
-      },
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
-//Отримання токена ---------------------------------
-export const loginUser = async (req, res, next) => {
+export const register = async (req, res, next) => {
   const { error } = registerUserSchema.validate(req.body, {
     abortEarly: false,
   });
@@ -55,115 +15,106 @@ export const loginUser = async (req, res, next) => {
     return next(HttpError(400, errorMessage));
   }
   try {
-    const existUser = await User.findOne({ email: req.body.email });
-    if (existUser === null) {
-      console.log("Email is wrong");
-      return res.status(401).send({ message: "Email or password is wrong" });
-    }
-    const isMatch = await bcrypt.compare(req.body.password, existUser.password);
-    if (isMatch === false) {
-      console.log("Password is wrong");
-      return res.status(401).send({ message: "Email or password is wrong" });
-    }
+    const existedUser = await User.findOne({ email: req.body.email });
+    if (existedUser) throw HttpError(409, "Email in use");
 
-    const payload = {
-      id: existUser.id,
-    };
+    const passwordHash = await bcrypt.hash(req.body.password, 10);
 
-    const secret = process.env.SECRET;
+   const newUser = await User.create({
+     email: req.body.email,
+     password: passwordHash,
+   });
 
-    const token = jwt.sign(payload, secret, { expiresIn: "24h" });
+   res.status(201).json({
+     user: {
+       email: newUser.email,
+       subscription: newUser.subscription || "starter",
+     },
+   });
+  } catch (error) {
+    next(error);
+  }
+};
 
-    existUser.token = token;
-    await existUser.save();
+export const login = async (req, res, next) => {
+  const { error } = registerUserSchema.validate(req.body, {
+    abortEarly: false,
+  });
 
-    res.status(200).send({
-      token: token,
+  if (error) {
+    const errorMessage = error.details
+      .map((detail) => detail.message)
+      .join(", ");
+    return next(HttpError(400, errorMessage));
+  }
+  try {
+    const existedUser = await User.findOne({ email: req.body.email });
+    if (!existedUser) throw HttpError(401, "Email or password is wrong");
+
+    const isMatch = await bcrypt.compare(
+      req.body.password,
+      existedUser.password
+    );
+
+    if (!isMatch) throw HttpError(401, "Email or password is wrong");
+
+    const token = jwt.sign({ id: existedUser._id }, process.env.JWT_SECRET, {
+      expiresIn: "12h",
+    });
+
+    await User.findByIdAndUpdate(existedUser._id, { token });
+
+    res.status(200).json({
+      token,
       user: {
-        email: req.body.email,
-        subscription: "starter",
+        email: existedUser.email,
+        subscription: existedUser.subscription,
       },
     });
-    next();
   } catch (error) {
     next(error);
   }
 };
 
-//Видалення токена  -----------------------------------
-
-export const logoutUser = async (req, res, next) => {
+export const logout = async (req, res, next) => {
   try {
-    const userId = req.user._id; 
+    await User.findByIdAndUpdate(req.user.id, { token: null });
 
-    const user = await User.findById(userId);
-
-    if (user === null) {
-      return res.status(401).send({ message: "Not authorized" });
-    }
-
-    user.token = null;
-    await user.save();
-
-    return res.status(204).send("No Content");
+    res.status(204).end();
   } catch (error) {
     next(error);
   }
 };
 
-//Отримати дані поточного юз по токені  -------------------------------
-export const getCurrentUser = async (req, res, next) => {
+export const currentUser = async (req, res, next) => {
   try {
-    const userId = req.user._id; 
-
-    const user = await User.findById(userId);
-
-    if (user === null) {
-      return res.status(401).send({ message: "Not authorized" });
-    }
-    const result = { email: user.email, subscription: user.subscription };
-    return res.status(200).send(result);
+    res.status(200).json({
+      email: req.user.email,
+      subscription: req.user.subscription,
+    });
   } catch (error) {
     next(error);
   }
 };
-
-//Оновлення підписки -----------------------------
 
 export const updateSubscription = async (req, res, next) => {
-  const validSubscriptions = ["starter", "pro", "business"];
-  const { subscription } = req.body;
-
-  if (!validSubscriptions.includes(subscription)) {
-    return res.status(400).json({ message: "Invalid subscription value" });
-  }
-
   try {
-    const userId = req.user.id;
+    const { subscription } = req.body;
+    const { id } = req.user;
 
-    const user = await User.findById(userId);
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
+    if (!["starter", "pro", "business"].includes(subscription)) {
+      throw HttpError(400, "Invalid subscription type");
     }
-    user.subscription = subscription;
-    await user.save();
 
-    res
-      .status(200)
-      .json({
-        message: "Subscription updated successfully",
-        user: { email: user.email, subscription: user.subscription },
-      });
+    const result = await User.findByIdAndUpdate(
+      id,
+      { subscription },
+      { new: true }
+    );
+
+    if (!result) throw HttpError(404, "User not found");
+    res.status(200).json(result);
   } catch (error) {
     next(error);
   }
-};
-
-export default {
-  registerUser,
-  loginUser,
-  logoutUser,
-  getCurrentUser,
-  updateSubscription,
 };

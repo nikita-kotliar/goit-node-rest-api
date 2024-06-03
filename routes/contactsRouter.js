@@ -1,48 +1,46 @@
 import express from "express";
-import ContactsController from "../controllers/contactsControllers.js";
-import authTokenUsePassport from "../middleware/authTokenUsePassport.js";
-
-const jsonParser = express.json();
-
+import {
+  createContact,
+  deleteContact,
+  getAllContacts,
+  getOneContact,
+  updateContact,
+  updateStatusContact,
+} from "../controllers/contactsControllers.js";
+import validateBody from "../helpers/validateBody.js";
+import {
+  createContactSchema,
+  updateContactSchema,
+  updateStatusSchema,
+} from "../schemas/contactsSchemas.js";
+import { checkAuth } from "../middlewares/checkAuth.js";
 const contactsRouter = express.Router();
 
-contactsRouter.get(
-  "/",
-  authTokenUsePassport,
-  ContactsController.getAllContacts
-);
+contactsRouter.get("/", checkAuth, getAllContacts);
 
-contactsRouter.get(
-  "/:id",
-  authTokenUsePassport,
-  ContactsController.getOneContact
-);
+contactsRouter.get("/:id", checkAuth, getOneContact);
 
-contactsRouter.delete(
-  "/:id",
-  authTokenUsePassport,
-  ContactsController.deleteContact
-);
+contactsRouter.delete("/:id", checkAuth, deleteContact);
 
 contactsRouter.post(
   "/",
-  jsonParser,
-  authTokenUsePassport,
-  ContactsController.createContact
+  checkAuth,
+  validateBody(createContactSchema),
+  createContact
 );
 
 contactsRouter.put(
   "/:id",
-  jsonParser,
-  authTokenUsePassport,
-  ContactsController.updateContact
+  checkAuth,
+  validateBody(updateContactSchema),
+  updateContact
 );
 
 contactsRouter.patch(
-  "/:contactId/favorite",
-  jsonParser,
-  authTokenUsePassport,
-  ContactsController.updateContactFavoriteStatus
+  "/:id/favorite",
+  checkAuth,
+  validateBody(updateStatusSchema),
+  updateStatusContact
 );
 
 export default contactsRouter;

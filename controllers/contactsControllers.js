@@ -1,85 +1,58 @@
+import mongoose from "mongoose";
+import Contact from "../db/models/Contact.js";
 import HttpError from "../helpers/HttpError.js";
 import {
-  updateContactSchemaValid,
-  validateFavoriteBody,
-  createContactSchemaValid,
+  updateContactSchema,
+  updateStatusSchema,
+  createContactSchema,
 } from "../schemas/contactsSchemas.js";
-import Contact from "../models/Contact.js";
 
-import mongoose from "mongoose";
+const isValidObjectId = (id) => {
+  return mongoose.Types.ObjectId.isValid(id);
+};
 
 export const getAllContacts = async (req, res, next) => {
   try {
-    const page = parseInt(req.query.page) || 1;
-    const limit = parseInt(req.query.limit) || 20;
-
-    const userId = req.user.id;
-
-    const filter = { owner: userId };
-
-    const favorite = req.query.favorite;
-
-    if (
-      favorite !== undefined &&
-      !["true", "false"].includes(favorite.toLowerCase())
-    ) {
-      return res
-        .status(400)
-        .json({ message: "Invalid value for favorite field" });
-    }
-
-    if (favorite !== undefined) {
-      filter.favorite = favorite.toLowerCase() === "true";
-    }
-
+    const { page = 1, limit = 20, favorite } = req.query;
     const skip = (page - 1) * limit;
+    const query = favorite
+      ? { favorite: favorite === "true", owner: req.user.id }
+      : { owner: req.user.id };
 
-    const contacts = await Contact.find(filter).skip(skip).limit(limit);
-    return res.status(200).json(contacts);
+    const contacts = await Contact.find(query)
+      .skip(skip)
+      .limit(Number(limit))
+      .select("-owner"); 
+
+    res.status(200).json(contacts);
   } catch (error) {
-    console.error(error);
     next(error);
   }
 };
-export const getOneContact = async (req, res, next) => {
-  const { id } = req.params;
 
+export const getOneContact = async (req, res, next) => {
   try {
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      throw HttpError(400, "Invalid ObjectId format");
-    }
-    const contact = await Contact.findById(id);
-    if (!contact) {
-      throw HttpError(404);
-    }
-    if (contact.owner.toString() !== req.user.id) {
-      throw HttpError(403, "Contact not found");
-    }
+    const { id } = req.params;
+    const userId = req.user.id;
+    const contact = await Contact.findOne({ _id: id, owner: userId });
+
+    if (!contact) throw HttpError(404, "Contact not found");
+
     res.status(200).json(contact);
   } catch (error) {
-    const status = error.status || 500;
-    res.status(status).json({ message: error.message });
+    next(error);
   }
 };
 
 export const deleteContact = async (req, res, next) => {
-  const { id } = req.params;
   try {
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      throw HttpError(400, "Invalid ObjectId format");
-    }
-    const contact = await Contact.findById(id);
-    if (!contact) {
-      throw HttpError(404);
-    }
-    if (contact.owner.toString() !== req.user.id) {
-      throw HttpError(403, "Contact not found");
-    }
-    const removedContact = await Contact.findByIdAndDelete(id);
-    if (!removedContact) {
-      throw HttpError(404);
-    }
-    res.status(200).json(removedContact);
+    const { id } = req.params;
+    const userId = req.user.id;
+    const contact = await Contact.findOneAndDelete({ _id: id, owner: userId });
+
+    if (!contact) throw HttpError(404, "Contact not found or already deleted");
+
+    res.status(200).json(contact);
   } catch (error) {
     next(error);
   }
@@ -87,8 +60,9 @@ export const deleteContact = async (req, res, next) => {
 
 export const createContact = async (req, res, next) => {
   try {
-    const { name, email, phone } = req.body;
-    const { error } = updateContactSchemaValid.validate(req.body, {
+    const { id } = req.user;
+    const result = await Contact.create({ ...req.body, owner: id });
+    const { error } = createContactSchema.validate(req.body, {
       abortEarly: false,
     });
 
@@ -98,31 +72,25 @@ export const createContact = async (req, res, next) => {
         .join(", ");
       return next(HttpError(400, errorMessage));
     }
-    console.log(req.user);
-    // створюємо новий контакт
-    const newContact = new Contact({
-      name,
-      email,
-      phone,
-      owner: req.user.id, // add owner з моделі Contact та присвоєння їй id користувача
-    });
+    const resultObject = result.toObject();
+    delete resultObject.owner;
 
-    const savedContact = await newContact.save();
-    res.status(201).json(savedContact);
+    res.status(201).json(resultObject);
   } catch (error) {
     next(error);
   }
 };
-
 
 export const updateContact = async (req, res, next) => {
-  const { id } = req.params;
   try {
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      throw HttpError(400, "Invalid ObjectId format");
-    }
-    const { name, email, phone } = req.body;
-    const { error } = createContactSchemaValid.validate(req.body, {
+    const { id } = req.params;
+    const userId = req.user.id;
+    const result = await Contact.findOneAndUpdate(
+      { _id: id, owner: userId },
+      req.body,
+      { new: true }
+    );
+    const { error } = updateContactSchema.validate(req.body, {
       abortEarly: false,
     });
 
@@ -132,85 +100,38 @@ export const updateContact = async (req, res, next) => {
         .join(", ");
       return next(HttpError(400, errorMessage));
     }
-    const contact = await Contact.findById(id);
-    if (!contact) {
-      throw HttpError(404);
-    }
-    if (contact.owner.toString() !== req.user.id) {
-      throw HttpError(403, "Contact not found");
-    }
-    const updatedContact = await Contact.findByIdAndUpdate(
-      id,
-      {
-        name,
-        email,
-        phone,
-      },
+    if (!result) throw HttpError(404, "Contact not found");
 
-      { new: true }
-    );
-    if (!updatedContact) {
-      throw HttpError(404);
-    }
-    res.status(200).json(updatedContact);
+    if (result.owner.toString() !== req.user.id) throw HttpError(403);
+
+    res.status(200).json(result);
   } catch (error) {
     next(error);
   }
 };
 
-
-async function updateStatusContact(contactId, favorite) {
+export const updateStatusContact = async (req, res, next) => {
   try {
-    const updatedContact = await Contact.findByIdAndUpdate(
-      contactId,
+    const { id } = req.params;
+    const { favorite } = req.body;
+    const userId = req.user.id;
+
+    const result = await Contact.findOneAndUpdate(
+      { _id: id, owner: userId },
       { favorite },
       { new: true }
     );
-    if (!updatedContact) {
-      return null;
-    }
-    return updatedContact;
-  } catch (error) {
-    throw error;
-  }
-}
+    const { error } = updateStatusSchema.validate(req.body);
 
-export const updateContactFavoriteStatus = async (req, res, next) => {
-  const { contactId } = req.params;
-  const { favorite } = req.body;
+    if (error) {
+      return res.status(400).json({ message: error.details[0].message });
+    }
+    if (!result) throw HttpError(404, "Contact not found");
 
-  const { error } = validateFavoriteBody.validate(req.body);
+    if (result.owner.toString() !== req.user.id) throw HttpError(403);
 
-  if (error) {
-    return res.status(400).json({ message: error.details[0].message });
-  }
-  try {
-    const contact = await Contact.findById(contactId);
-    if (!contact) {
-      return res.status(404).json({ message: "Contact not found" });
-    }
-    if (contact.owner.toString() !== req.user.id) {
-      throw HttpError(403, "Contact not found");
-    }
-    if (!mongoose.Types.ObjectId.isValid(contactId)) {
-      return res.status(400).json({ message: "Invalid ObjectId format" });
-    }
-    const updatedContact = await updateStatusContact(contactId, favorite);
-    if (!updatedContact) {
-      throw HttpError(404, "Not found");
-    }
-    res.status(200).json(updatedContact);
+    res.status(200).json(result);
   } catch (error) {
     next(error);
   }
-};
-
-export default {
-  getAllContacts,
-  getOneContact,
-  deleteContact,
-  createContact,
-  updateContact,
-  updateStatusContact,
-  updateContactFavoriteStatus,
 };
