@@ -3,15 +3,11 @@ import HttpError from "../helpers/HttpError.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import gravatar from "gravatar";
-import { registerUserSchema, loginUserSchema } from "../schemas/usersSchema";
-
-
 
 export const register = async (req, res, next) => {
   const { error } = registerUserSchema.validate(req.body, {
     abortEarly: false,
   });
-
   if (error) {
     const errorMessage = error.details
       .map((detail) => detail.message)
@@ -25,18 +21,18 @@ export const register = async (req, res, next) => {
     const passwordHash = await bcrypt.hash(req.body.password, 10);
     const avatar = gravatar.url(req.body.email);
 
-   const newUser = await User.create({
-     email: req.body.email,
-     password: passwordHash,
-     avatarURL: avatar,
-   });
+    const newUser = await User.create({
+      email: req.body.email,
+      password: passwordHash,
+      avatarURL: avatar,
+    });
 
-   res.status(201).json({
-     user: {
-       email: newUser.email,
-       subscription: newUser.subscription || "starter",
-     },
-   });
+    res.status(201).json({
+      user: {
+        email: newUser.email,
+        subscription: newUser.subscription || "starter",
+      },
+    });
   } catch (error) {
     next(error);
   }

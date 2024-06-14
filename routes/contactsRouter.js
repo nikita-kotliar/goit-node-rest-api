@@ -13,32 +13,21 @@ import {
   updateContactSchema,
   updateStatusSchema,
 } from "../schemas/contactsSchemas.js";
-import { checkAuth } from "../middlewares/checkAuth.js";
+
 const contactsRouter = express.Router();
 
-contactsRouter.get("/", checkAuth, getAllContacts);
+contactsRouter.get("/", getAllContacts);
 
-contactsRouter.get("/:id", checkAuth, getOneContact);
+contactsRouter.get("/:id", getOneContact);
 
-contactsRouter.delete("/:id", checkAuth, deleteContact);
+contactsRouter.delete("/:id", deleteContact);
 
-contactsRouter.post(
-  "/",
-  checkAuth,
-  validateBody(createContactSchema),
-  createContact
-);
+contactsRouter.post("/", validateBody(createContactSchema), createContact);
 
-contactsRouter.put(
-  "/:id",
-  checkAuth,
-  validateBody(updateContactSchema),
-  updateContact
-);
+contactsRouter.put("/:id", validateBody(updateContactSchema), updateContact);
 
 contactsRouter.patch(
   "/:id/favorite",
-  checkAuth,
   validateBody(updateStatusSchema),
   updateStatusContact
 );

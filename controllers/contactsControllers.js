@@ -22,14 +22,13 @@ export const getAllContacts = async (req, res, next) => {
     const contacts = await Contact.find(query)
       .skip(skip)
       .limit(Number(limit))
-      .select("-owner"); 
+      .select("-owner");
 
     res.status(200).json(contacts);
   } catch (error) {
     next(error);
   }
 };
-
 export const getOneContact = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -80,7 +79,6 @@ export const createContact = async (req, res, next) => {
     next(error);
   }
 };
-
 export const updateContact = async (req, res, next) => {
   try {
     const { id } = req.params;

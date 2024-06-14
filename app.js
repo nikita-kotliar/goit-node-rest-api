@@ -5,10 +5,10 @@ import contactsRouter from "./routes/contactsRouter.js";
 import authRouter from "./routes/authRouter.js";
 import "dotenv/config";
 import "./db/dbServer.js";
-import path from "node:path";
+
 
 const app = express();
-app.use("/avatars", express.static(path.resolve("public/avatars")));
+
 app.use(morgan("tiny"));
 app.use(cors());
 app.use(express.json());
@@ -25,6 +25,6 @@ app.use((err, req, res, next) => {
   res.status(status).json({ message });
 });
 
-app.listen(3016, () => {
-  console.log("Server started on port 3000");
+app.listen(2134, () => {
+  console.log("Server started on port 3021");
 });
