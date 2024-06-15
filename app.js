@@ -25,6 +25,6 @@ app.use((err, req, res, next) => {
   res.status(status).json({ message });
 });
 
-app.listen(2134, () => {
-  console.log("Server started on port 3021");
+app.listen(3000, () => {
+  console.log("Server started on port 3000");
 });
