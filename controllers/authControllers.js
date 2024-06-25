@@ -16,22 +16,29 @@ export const register = async (req, res, next) => {
     return next(HttpError(400, errorMessage));
   }
   try {
-    const existedUser = await User.findOne({ email: req.body.email });
+    const { email, password } = req.body;
+    const existedUser = await User.findOne({ email });
     if (existedUser) throw HttpError(409, "Email in use");
 
-    const passwordHash = await bcrypt.hash(req.body.password, 10);
-    const avatar = gravatar.url(req.body.email);
+    const hashPassword = await bcrypt.hash(password, 10);
+    const generatedAvatar = gravatar.url(email);
+    const verificationToken = crypto.randomUUID();
 
     const newUser = await User.create({
-      email: req.body.email,
-      password: passwordHash,
-      avatarURL: avatar,
+      email,
+      password: hashPassword,
+      avatarURL: `http:${generatedAvatar}`,
+      verificationToken,
     });
+
+    const { subscription } = newUser;
+
+    await mail.sendMail(email, verificationToken);
 
     res.status(201).json({
       user: {
-        email: newUser.email,
-        subscription: newUser.subscription || "starter",
+        email,
+        subscription,
       },
     });
   } catch (error) {
@@ -51,15 +58,16 @@ export const login = async (req, res, next) => {
     return next(HttpError(400, errorMessage));
   }
   try {
-    const existedUser = await User.findOne({ email: req.body.email });
+    const { email, password } = req.body;
+    const existedUser = await User.findOne({ email });
     if (!existedUser) throw HttpError(401, "Email or password is wrong");
 
-    const isMatch = await bcrypt.compare(
-      req.body.password,
-      existedUser.password
-    );
-
+    const isMatch = await bcrypt.compare(password, existedUser.password);
     if (!isMatch) throw HttpError(401, "Email or password is wrong");
+
+    if (!existedUser.verify) {
+      return res.status(401).json({ message: "Please verify your email" });
+    }
 
     const token = jwt.sign({ id: existedUser._id }, process.env.JWT_SECRET, {
       expiresIn: "12h",
@@ -117,6 +125,45 @@ export const updateSubscription = async (req, res, next) => {
 
     if (!result) throw HttpError(404, "User not found");
     res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const verifyEmail = async (req, res, next) => {
+  try {
+    const { verificationToken } = req.params;
+    const user = await User.findOne({ verificationToken });
+    console.log(user);
+    console.log(verificationToken);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    await User.findOneAndUpdate(
+      { _id: user._id },
+      { verify: true, verificationToken: null }
+    );
+
+    res.status(200).json({ message: "Verification successful" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const resendVerifyEmail = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    const user = await User.findOne({ email });
+    if (user.verify)
+      throw HttpError(400, "Verification has already been passed");
+
+    console.log(user);
+
+    await mail.sendMail(email, user.verificationToken);
+
+    res.status(200).json({ message: "Verification email sent" });
   } catch (error) {
     next(error);
   }

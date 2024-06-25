@@ -5,6 +5,8 @@ import {
   logout,
   currentUser,
   updateSubscription,
+  verifyEmail,
+  resendVerifyEmail,
 } from "../controllers/authControllers.js";
 import validateBody from "../helpers/validateBody.js";
 import {
@@ -33,5 +35,7 @@ authRouter.patch(
   uploadMiddleware.single("avatar"),
   uploadAvatar
 );
+authRouter.get("/verify/:verificationToken", verifyEmail);
+authRouter.post("/verify", validateBody(resendVerifySchema), resendVerifyEmail);
 
 export default authRouter;
