@@ -13,6 +13,7 @@ import {
   loginUserSchema,
   registerUserSchema,
   subscriptionUserSchema,
+  resendVerifySchema,
 } from "../schemas/usersSchema.js";
 import { checkAuth } from "../middlewares/checkAuth.js";
 import { uploadAvatar } from "../controllers/usersControllers.js";
