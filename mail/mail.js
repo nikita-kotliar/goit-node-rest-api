@@ -16,7 +16,7 @@ function sendMail(email, token) {
   const message = {
     to: email,
     from: MAIL_SENDER,
-    subject: "Vitrification email",
+    subject: "Email Confirmation",
     html: `Thank you for registration, to confirm your email please go to this link <a href="http://localhost:3000/api/users/verify/${token}">Confirm registration</a>`,
     text: `Thank you for registration, to confirm your email please go to this link http://localhost:3000/api/users/verify/${token}`,
   };
