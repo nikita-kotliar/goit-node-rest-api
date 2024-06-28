@@ -3,6 +3,9 @@ import HttpError from "../helpers/HttpError.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import gravatar from "gravatar";
+import mail from "../mail/mail.js";
+import crypto from "node:crypto";
+import "dotenv/config";
 import { registerUserSchema, loginUserSchema } from "../schemas/usersSchema.js";
 
 export const register = async (req, res, next) => {
