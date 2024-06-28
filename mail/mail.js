@@ -1,11 +1,12 @@
 import SibApiV3Sdk from "sib-api-v3-sdk";
 
-const { MAIL_USERNAME, MAIL_PASSWORD, MAIL_SENDER } = process.env;
+const { MAIL_USERNAME, MAIL_PASSWORD, MAIL_SENDER, V3 } = process.env;
 
 // Configure the Sendinblue API client
 const defaultClient = SibApiV3Sdk.ApiClient.instance;
 const apiKey = defaultClient.authentications["api-key"];
-apiKey.apiKey = "YOUR_API_V3_KEY"; // Replace with your actual API key
+apiKey.apiKey =
+  V3; // Replace with your actual API key
 const apiInstance = new SibApiV3Sdk.EmailCampaignsApi();
 
 function sendMail(email, token) {
