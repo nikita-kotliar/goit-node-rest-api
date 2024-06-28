@@ -4,8 +4,8 @@ import nodemailer from "nodemailer";
 const { MAIL_USERNAME, MAIL_PASSWORD, MAIL_SENDER, HOST_PORT } = process.env;
 
 const transport = nodemailer.createTransport({
-  host: "sandbox.smtp.mailtrap.io",
-  port: 2525,
+  host: "smtp-relay.sendinblue.com",
+  port: 587,
   type: "LOGIN",
   auth: {
     user: MAIL_USERNAME,
