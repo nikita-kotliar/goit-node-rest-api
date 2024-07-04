@@ -168,3 +168,20 @@ export const resendVerifyEmail = async (req, res, next) => {
     next(error);
   }
 };
+
+
+import { loginOrSignupWithGoogle } from "../services/auth.js";
+
+
+export const loginWithGoogleController = async (req, res) => {
+  const session = await loginOrSignupWithGoogle(req.body.code);
+  setupSession(res, session);
+
+  res.json({
+    status: 200,
+    message: "Successfully logged in via Google OAuth!",
+    data: {
+      accessToken: session.accessToken,
+    },
+  });
+};

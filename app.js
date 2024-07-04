@@ -9,6 +9,9 @@ import path from "node:path";
 
 const app = express();
 
+const { swaggerUi, swaggerSpec } = require("./swaggerConfig");
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
 app.use(morgan("tiny"));
 app.use(cors());
 app.use(express.json());

@@ -1,0 +1,29 @@
+tags:
+  - Contacts
+summary: Get all contacts
+operationId: getAllContacts
+description: Retrieve a list of all contacts.
+security:
+  - BearerAuth: []
+parameters:
+  - name: page
+    in: query
+    schema:
+      type: integer
+    description: The page number for pagination
+  - name: pageSize
+    in: query
+    schema:
+      type: integer
+    description: The number of items per page
+responses:
+  '200':
+    description: Successfully retrieved contacts
+    content:
+      application/json:
+        schema:
+          type: array
+          items:
+            $ref: '../../components/schemas/Contact.yaml'
+  '404':
+    description: No contacts found
