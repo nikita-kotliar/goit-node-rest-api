@@ -6,12 +6,14 @@ import authRouter from "./routes/authRouter.js";
 import "dotenv/config";
 import "./db/dbServer.js";
 import path from "node:path";
+import { swaggerDocs } from "./middlewares/swaggerDocs.js";
 
 const app = express();
 
 const { swaggerUi, swaggerSpec } = require("./swaggerConfig");
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-
+app.use("/uploads", express.static(UPLOAD_DIR));
+app.use("/api-docs", swaggerDocs());
 app.use(morgan("tiny"));
 app.use(cors());
 app.use(express.json());

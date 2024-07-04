@@ -19,6 +19,7 @@ import { checkAuth } from "../middlewares/checkAuth.js";
 import { uploadAvatar } from "../controllers/usersControllers.js";
 import uploadMiddleware from "../middlewares/upload.js";
 import { loginUserSchema } from "../validation/auth.js";
+import { getGoogleOAuthUrlController } from "../controllers/auth.js";
 
 const authRouter = express.Router();
 router.post(
@@ -26,7 +27,7 @@ router.post(
   validateBody(loginWithGoogleOAuthSchema),
   ctrlWrapper(loginWithGoogleController),
 );
-
+router.get("/get-oauth-url", ctrlWrapper(getGoogleOAuthUrlController));
 authRouter.post("/register", validateBody(registerUserSchema), register);
 authRouter.post("/login", validateBody(loginUserSchema), login);
 authRouter.post("/logout", checkAuth, logout);
