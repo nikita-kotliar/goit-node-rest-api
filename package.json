@@ -2,7 +2,6 @@
   "name": "goit-node-rest-api",
   "type": "module",
   "scripts": {
-    "build": "tsc && npm run build-docs",
     "start": "node dist/app.js",
     "dev": "nodemon ./src/index.ts | pino-pretty",
     "build-docs": "redocly bundle --ext json -o docs/swagger.json",
