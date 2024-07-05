@@ -26,7 +26,7 @@ paths:
     post:
       $ref: '../swagger/paths/contacts/post.yaml'
 components:
-schemas:
+  schemas:
     Contact:
       $ref: '../swagger/components/schemas/Contact.yaml'
   securitySchemes:
@@ -34,6 +34,3 @@ schemas:
       type: http
       scheme: bearer
       bearerFormat: JWT
-
-
-      
