@@ -1,8 +1,9 @@
 import createHttpError from "http-errors";
 import swaggerUI from "swagger-ui-express";
 import fs from "node:fs";
+import path from "node:path";
 
-import { SWAGGER_PATH } from "../constants/index.js";
+const SWAGGER_PATH = path.join(path.resolve(), "docs", "swagger.json");
 
 export const swaggerDocs = () => {
   try {

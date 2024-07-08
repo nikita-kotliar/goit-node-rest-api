@@ -11,11 +11,11 @@ requestBody:
   content:
     application/json:
       schema:
-        $ref: '../../components/schemas/Contact.yaml'
+        $ref: '../../components/Contact.yaml'
 responses:
   '201':
     description: Successfully created contact
     content:
       application/json:
         schema:
-          $ref: '../../components/schemas/Contact.yaml'
+          $ref: '../../components/Contact.yaml'

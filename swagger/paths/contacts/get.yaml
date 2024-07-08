@@ -24,6 +24,6 @@ responses:
         schema:
           type: array
           items:
-            $ref: '../../components/schemas/Contact.yaml'
+            $ref: '../../components/Contact.yaml'
   '404':
     description: No contacts found

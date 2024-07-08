@@ -10,10 +10,9 @@ import { swaggerDocs } from "./middlewares/swaggerDocs.js";
 
 const app = express();
 
-const { swaggerUi, swaggerSpec } = require("./swaggerConfig");
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+const UPLOAD_DIR = path.resolve("uploads");
+
 app.use("/uploads", express.static(UPLOAD_DIR));
-app.use("/api-docs", swaggerDocs());
 app.use(morgan("tiny"));
 app.use(cors());
 app.use(express.json());
@@ -21,6 +20,7 @@ app.use(express.static("public"));
 
 app.use("/api/contacts", contactsRouter);
 app.use("/users", authRouter);
+app.use("/api-docs", swaggerDocs()); 
 
 app.use((req, res, next) => {
   res.status(404).json({ message: "Route not found" });
